@@ -1,2 +1,2 @@
-# Vue-TravelStory
+# Vue-FunTravelMap
 Vue
