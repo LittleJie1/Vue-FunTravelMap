@@ -1,6 +1,6 @@
 <template>
   <div id="home" class="container">
-    <h1>Welcome to Home App</h1>
+    <h1>Welcome to check App</h1>
     <div v-if="profile">
       <img :src="profile.pictureUrl" alt="Profile Picture" class="profile-img"/>
       <p>Name: {{ profile.displayName }}</p>

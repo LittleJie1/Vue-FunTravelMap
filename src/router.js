@@ -1,17 +1,19 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from './components/home.vue';
-import About from './components/about.vue';
+import Checkin from './components/checkin.vue';
 
 const routes = [
   {
     path: '/',
     name: 'Home',
-    component: Home
+    component: Home,
+    meta: { liffId: '2005485902-yVd49AD9' } // 這是你的第一個 LIFF ID
   },
   {
-    path: '/about',
-    name: 'About',
-    component: About
+    path: '/checkin',
+    name: 'Checkin',
+    component: Checkin,
+    meta: { liffId: '2005485902-LB2QaZDa' } // 這是你的第二個 LIFF ID
   }
 ];
 

@@ -2,7 +2,7 @@
   <div id="app">
     <div class="navbar">
       <router-link to="/">Home</router-link>
-      <router-link to="/about">About</router-link>
+      <router-link to="/checkin">Checkin</router-link>
     </div>
     <router-view></router-view>
   </div>
@@ -23,34 +23,41 @@ export default {
 }
 
 .navbar {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: #f8f8f8;
+  text-align: center;
+  padding: 20px 0;
+  box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1);
 }
 
 .navbar a {
-  background-color: #42b983;
-  border: none;
-  color: white;
-  padding: 10px 20px;
-  text-align: center;
+  position: relative;
+  margin: 0 15px;
+  color: #000;
   text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
-  cursor: pointer;
-  border-radius: 5px;
+  transition: color 0.3s ease;
+}
+
+.navbar a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -5px;
+  width: 100%;
+  height: 2px;
+  background-color: #007BFF;
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
 }
 
 .navbar a:hover {
-  background-color: #36a673;
+  color: #007BFF;
 }
 
-.router-link-active {
-  background-color: #36a673;
+.navbar a:hover::after {
+  transform: scaleX(1);
 }
 
-.content {
-  padding: 20px;
-}
 </style>

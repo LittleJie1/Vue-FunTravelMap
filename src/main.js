@@ -3,18 +3,31 @@ import App from './App.vue';
 import liff from '@line/liff';
 import router from './router';
 
-const liffId = '2005485902-yVd49AD9'; // 替換成你的 LIFF ID
+// 創建 Vue 應用實例
+const app = createApp(App);
 
-liff.init({ liffId })
-  .then(() => {
-    if (!liff.isLoggedIn()) {
-      liff.login();
-    } else {
-      const app = createApp(App);
-      app.use(router); // 使用 router
-      app.mount('#app');
-    }
-  })
-  .catch((err) => {
-    console.error('LIFF initialization failed', err);
-  });
+// 使用 Vue Router
+app.use(router);
+
+// 將 Vue 應用掛載到 DOM 中的 #app 元素上
+app.mount('#app');
+
+
+// 定義一個初始化 LIFF 的函數
+async function initializeLiff(liffId) {
+  try {
+    // 初始化 LIFF 並傳入對應的 liffId
+    await liff.init({ liffId });
+    console.log('LIFF initialized with ID:', liffId);
+  } catch (error) {
+    console.error('LIFF initialization failed', error);
+  }
+}
+// 在導航守衛中初始化 LIFF
+router.beforeEach(async (to, from, next) => {
+  const liffId = to.meta.liffId;
+  if (liffId) {
+    await initializeLiff(liffId);
+  }
+  next();
+});
