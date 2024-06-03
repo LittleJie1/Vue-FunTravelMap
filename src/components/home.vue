@@ -6,31 +6,19 @@
       <p>Name: {{ profile.displayName }}</p>
       <p>Status: {{ profile.statusMessage }}</p>
     </div>
-    <button @click="getUserProfile">Get Profile</button>
+    <!-- <button @click="getUserProfile">Get Profile</button> -->
   </div>
 </template>
 
 <script>
-import liff from '@line/liff'
+import { mapGetters } from 'vuex';
 
 export default {
-  data() {
-    return {
-      profile: null
-    };
-  },
-  created() {
-    console.log('Home component created')
-  },
-  methods: {
-    async getUserProfile() {
-      try {
-        const profile = await liff.getProfile();
-        console.log('Profile fetched:', profile)
-        this.profile = profile;
-      } catch (error) {
-        console.error('Error getting profile:', error);
-      }
+  name: 'Home',
+  computed: {
+    ...mapGetters(['getLiffData']),
+    profile() {
+      return this.getLiffData;
     }
   }
 };
