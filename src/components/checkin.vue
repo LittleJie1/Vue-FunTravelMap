@@ -1,14 +1,15 @@
 <template>
   <div>
     <div id="map" ref="map" class="map"></div>
-    <button @click="resetMap" class="reset-button">清除标记</button>
+    <button @click="resetMap" class="reset-button">清除標記</button>
+    <button @click="addCurrentLocationMarker" class="current-location-button">打卡</button>
   </div>
 </template>
 
 <script>
-/* global google */
+/* global google, liff */
 export default {
-  name: 'MapView',
+  name: 'Checkin',
   data() {
     return {
       map: null,
@@ -19,7 +20,8 @@ export default {
         south: 20,
         east: 123,
         west: 117,
-      }
+      },
+      isLiff: false, // 添加用于判断是否为 LIFF 环境的标志
     };
   },
   mounted() {
@@ -27,6 +29,7 @@ export default {
       this.savedState = JSON.parse(localStorage.getItem('mapState'));
     }
     this.loadMapScript();
+    this.checkLiffEnvironment();
   },
   methods: {
     loadMapScript() {
@@ -51,21 +54,12 @@ export default {
 
       this.map.setCenter({ lat: 23.6978, lng: 120.9605 });
 
-      this.map.addListener('click', (event) => {
-        const position = event.latLng;
-        this.addMarker(position);
-
-        const positionKey = `${position.lat()}_${position.lng()}`;
-        this.savedState[positionKey] = true;
-        localStorage.setItem('mapState', JSON.stringify(this.savedState));
-      });
-
       for (const key in this.savedState) {
         const [lat, lng] = key.split('_').map(Number);
-        this.addMarker(new google.maps.LatLng(lat, lng));
+        this.addMarker(new google.maps.LatLng(lat, lng), this.savedState[key].timestamp);
       }
     },
-    addMarker(position) {
+    addMarker(position, timestamp) {
       const marker = new google.maps.Marker({
         position,
         map: this.map,
@@ -76,7 +70,8 @@ export default {
       });
 
       const infoWindowContent = document.createElement('div');
-      infoWindowContent.innerHTML = '這是一個訊息窗口<button id="edit-btn">編輯</button>';
+      const formattedTimestamp = new Date(timestamp).toLocaleString();
+      infoWindowContent.innerHTML = `這是一個訊息窗口<br>打卡時間: ${formattedTimestamp}<br><button id="edit-btn">編輯</button>`;
 
       const infoWindow = new google.maps.InfoWindow({
         content: infoWindowContent,
@@ -97,6 +92,28 @@ export default {
 
       this.markers.push(marker);
     },
+    addCurrentLocationMarker() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+          const pos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          const timestamp = new Date().toISOString();
+          this.addMarker(pos, timestamp);
+
+          const positionKey = `${pos.lat}_${pos.lng}`;
+          this.savedState[positionKey] = { timestamp };
+          localStorage.setItem('mapState', JSON.stringify(this.savedState));
+
+          this.map.setCenter(pos);
+        }, () => {
+          alert('無法獲取當前位置');
+        });
+      } else {
+        alert('瀏覽器不支援定位系統');
+      }
+    },
     editMarker() {
       this.$router.push({ name: 'DetailView' });
     },
@@ -109,6 +126,21 @@ export default {
       }
       this.markers = [];
     },
+    checkLiffEnvironment() {
+      if (typeof liff !== 'undefined') {
+        liff.init({ liffId: '2005515760-KDlVv7YG' })
+          .then(() => {
+            this.isLiff = true;
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('from') === 'richmenu') {
+              this.addCurrentLocationMarker(); // 只在从 rich menu 进入时打卡
+            }
+          })
+          .catch((err) => {
+            console.error('LIFF initialization failed', err);
+          });
+      }
+    }
   },
 };
 </script>
@@ -119,7 +151,7 @@ export default {
   width: 100%;
 }
 
-.reset-button {
+.reset-button, .current-location-button {
   position: absolute;
   top: 10px;
   left: 10px;
@@ -128,5 +160,9 @@ export default {
   border: 1px solid #ccc;
   padding: 5px 10px;
   cursor: pointer;
+  margin-left: 10px;
+}
+.current-location-button {
+  left: 120px;
 }
 </style>
