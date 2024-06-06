@@ -2,7 +2,6 @@
   <div>
     <h1>詳細信息頁面</h1>
     <button @click="goBack">返回地圖</button>
-    <button @click="resetMap">重置地圖</button>
   </div>
 </template>
 
