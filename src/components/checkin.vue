@@ -21,7 +21,7 @@ export default {
         east: 123,
         west: 117,
       },
-      isLiff: false, // 添加用于判断是否为 LIFF 环境的标志
+      isLiff: false, // 添加用於判斷是否為 LIFF 環境的標誌
     };
   },
   mounted() {
@@ -84,7 +84,7 @@ export default {
           const editBtn = document.getElementById('edit-btn');
           if (editBtn) {
             editBtn.addEventListener('click', () => {
-              this.editMarker();
+              this.editMarker(timestamp);
             });
           }
         });
@@ -114,8 +114,8 @@ export default {
         alert('瀏覽器不支援定位系統');
       }
     },
-    editMarker() {
-      this.$router.push({ name: 'DetailView' });
+    editMarker(timestamp) {
+      this.$router.push({ name: 'DetailView', params: { timestamp } });
     },
     resetMap() {
       localStorage.removeItem('mapState');
@@ -133,7 +133,7 @@ export default {
             this.isLiff = true;
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('from') === 'richmenu') {
-              this.addCurrentLocationMarker(); // 只在从 rich menu 进入时打卡
+              this.addCurrentLocationMarker(); // 只在從 rich menu 進入時打卡
             }
           })
           .catch((err) => {
