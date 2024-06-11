@@ -4,6 +4,7 @@
       <input id="autocomplete-input" class="controls" type="text" v-model="searchQuery" placeholder="搜尋地點" />
       <button class="clear-button" @click="clearSearch">x</button>
     </div>
+    <div ref="mapContainer" class="map-container"></div>
     <div class="buttons">
       <button @click="showNearbyPlaces('tourist_attraction')">景點</button>
       <button @click="showNearbyPlaces('restaurant')">餐廳</button>
@@ -11,7 +12,6 @@
       <button @click="showNearbyPlaces('transit_station')">公車站</button> 
       <button @click="showNearbyPlaces('bus_station')">捷運站</button> 
     </div>
-    <div ref="mapContainer" class="map-container"></div>
     <div v-if="selectedPlace" class="info-container">
       <div class="info-content">
         <div class="info-image" v-if="selectedPlace.photos && selectedPlace.photos.length">
@@ -328,7 +328,7 @@ export default {
 
 .info-container {
   position: absolute;
-  bottom: 130px;
+  bottom: 110px;
   left: 50%;
   transform: translateX(-50%);
   width: 90%;
