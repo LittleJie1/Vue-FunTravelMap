@@ -11,6 +11,8 @@
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.6",
     "@line/liff": "^2.23.2",
+    "axios": "^1.7.2",
+    "uuid": "^10.0.0",
     "vite-plugin-commonjs": "^0.10.1",
     "vue": "^3.4.27",
     "vue-router": "^4.3.2",

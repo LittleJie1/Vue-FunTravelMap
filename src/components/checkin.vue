@@ -128,7 +128,7 @@ export default {
     },
     checkLiffEnvironment() {
       if (typeof liff !== 'undefined') {
-        liff.init({ liffId: '2005515760-KDlVv7YG' })
+        liff.init({ liffId: '2005485902-LB2QaZDa' })
           .then(() => {
             this.isLiff = true;
             const urlParams = new URLSearchParams(window.location.search);

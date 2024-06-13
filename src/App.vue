@@ -1,8 +1,9 @@
 <template>
   <div id="app">
     <div class="navbar">
-      <router-link to="/">Home</router-link>
-      <router-link to="/checkin">Checkin</router-link>
+      <router-link to="/">找景點</router-link>
+      <router-link to="/planner">我的行程</router-link>
+      <router-link to="/checkin">旅圖打卡</router-link>
     </div>
     <router-view></router-view>
   </div>

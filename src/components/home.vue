@@ -9,8 +9,8 @@
       <button @click="showNearbyPlaces('tourist_attraction')">景點</button>
       <button @click="showNearbyPlaces('restaurant')">餐廳</button>
       <button @click="showNearbyPlaces('lodging')">住宿</button>
-      <button @click="showNearbyPlaces('transit_station')">公車站</button> 
-      <button @click="showNearbyPlaces('bus_station')">捷運站</button> 
+      <button @click="showNearbyPlaces('transit_station')">公車站</button>
+      <button @click="showNearbyPlaces('bus_station')">捷運站</button>
     </div>
     <div v-if="selectedPlace" class="info-container">
       <div class="info-content">
@@ -26,11 +26,16 @@
     </div>
     <div v-if="showToast" class="toast">加入成功！</div>
   </div>
+  <div v-if="profile">
+    <h3>User Profile</h3>
+    <p>Name: {{ profile.displayName }}</p>
+  </div>
 </template>
 
 <script>
 import { Loader } from '@googlemaps/js-api-loader';
 import iconData from '../assets/icon.json';
+import { mapGetters } from 'vuex';
 
 export default {
   name: 'Home',
@@ -46,9 +51,19 @@ export default {
       autocomplete: null, // 用於存儲自動完成控件
       selectedPlace: null,
       showToast: null,
+      profile: null
     };
   },
-  mounted() { //畫面載入時執行
+  computed: {
+    ...mapGetters(['getLiffData'])
+  },
+  async mounted() { // 畫面載入時執行
+    this.initMap();
+  },
+  async mounted() {
+    if (this.getLiffData) {
+      this.profile = this.getLiffData;
+    }
     this.initMap();
   },
   methods: {
@@ -266,17 +281,17 @@ export default {
       this.selectedPlace = null; // 新增，清空搜索時清空選定的地點信息
     },
     addToItinerary() {
-    if (this.selectedPlace && this.selectedPlace.geometry && this.selectedPlace.geometry.location) {
-      const latitude = this.selectedPlace.geometry.location.lat();
-      const longitude = this.selectedPlace.geometry.location.lng();
-      console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
-      this.showToast = true;
-      setTimeout(() => {
-        this.showToast = false;
-      }, 1000); // 提示框顯示1秒後消失
-    }
-  },
-  },
+      if (this.selectedPlace && this.selectedPlace.geometry && this.selectedPlace.geometry.location) {
+        const latitude = this.selectedPlace.geometry.location.lat();
+        const longitude = this.selectedPlace.geometry.location.lng();
+        console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
+        this.showToast = true;
+        setTimeout(() => {
+          this.showToast = false;
+        }, 1000); // 提示框顯示1秒後消失
+      }
+    },
+  }
 };
 </script>
 
@@ -333,7 +348,8 @@ export default {
   transform: translateX(-50%);
   width: 90%;
   max-width: 300px;
-  height: 130px; /* 固定高度 */
+  height: 130px;
+  /* 固定高度 */
   background: #e5f1ff;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -343,17 +359,20 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden; /* 隱藏超出內容 */
+  overflow: hidden;
+  /* 隱藏超出內容 */
 }
 
 .info-content {
   display: flex;
   align-items: center;
-  width: 100%; /* 確保內容寬度不超出容器 */
+  width: 100%;
+  /* 確保內容寬度不超出容器 */
 }
 
 .info-image {
-  margin-left: -10px; /* 調整這裡的值來靠左 */
+  margin-left: -10px;
+  /* 調整這裡的值來靠左 */
 }
 
 .info-image img {
@@ -361,15 +380,20 @@ export default {
   height: 100px;
   border-radius: 50px;
   object-fit: cover;
-  margin-right: 20px; /* 調整這裡的值來靠左 */
+  margin-right: 20px;
+  /* 調整這裡的值來靠左 */
 }
 
 .info-details {
   text-align: left;
-  width: calc(100% - 120px); /* 減去圖片的寬度，確保文本不會超出容器 */
-  overflow: hidden; /* 隱藏超出內容 */
-  text-overflow: ellipsis; /* 使用省略號表示超出部分 */
-  white-space: nowrap; /* 防止文本換行 */
+  width: calc(100% - 120px);
+  /* 減去圖片的寬度，確保文本不會超出容器 */
+  overflow: hidden;
+  /* 隱藏超出內容 */
+  text-overflow: ellipsis;
+  /* 使用省略號表示超出部分 */
+  white-space: nowrap;
+  /* 防止文本換行 */
 }
 
 .info-container h3 {
@@ -432,5 +456,3 @@ export default {
   transition: background-color 0.3s ease;
 }
 </style>
-
-
