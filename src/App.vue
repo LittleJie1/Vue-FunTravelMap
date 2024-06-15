@@ -1,8 +1,9 @@
 <template>
   <div id="app">
     <div class="navbar">
-      <router-link to="/">Home</router-link>
-      <router-link to="/checkin">Checkin</router-link>
+      <router-link to="/">找景點</router-link>
+      <router-link to="/planner">我的行程</router-link>
+      <router-link to="/checkin">旅圖打卡</router-link>
     </div>
     <router-view></router-view>
   </div>
@@ -16,10 +17,9 @@ export default {
 
 <style scoped>
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
   text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  background-color: #ffffff;
+  margin-top: 45px;
 }
 
 .navbar {
