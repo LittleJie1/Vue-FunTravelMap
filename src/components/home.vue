@@ -20,22 +20,23 @@
         <div class="info-details">
           <h3>{{ selectedPlace.name }}</h3>
           <p>★ {{ selectedPlace.rating ? selectedPlace.rating : '無評價' }}</p>
-          <button class="add-button" @click="addToItinerary">+ 加入行程</button>
+          <button v-if="selectedItinerary" class="add-button" @click="addToItinerary">+ 加入行程</button>
         </div>
       </div>
     </div>
     <div v-if="showToast" class="toast">加入成功！</div>
   </div>
-  <div v-if="profile">
+  <!-- <div v-if="profile">
     <h3>User Profile</h3>
     <p>Name: {{ profile.displayName }}</p>
-  </div>
+  </div> -->
 </template>
 
 <script>
 import { Loader } from '@googlemaps/js-api-loader';
 import iconData from '../assets/icon.json';
 import { mapGetters } from 'vuex';
+import axios from 'axios';
 
 export default {
   name: 'Home',
@@ -55,7 +56,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(['getLiffData'])
+    ...mapGetters(['getLiffData', 'selectedItinerary']),
   },
   async mounted() { // 畫面載入時執行
     this.initMap();
@@ -140,7 +141,7 @@ export default {
         console.error("No details available for input: '" + place.name + "'");
         return;
       }
-
+      
       // 清除舊的標記
       this.clearMarkers();
 
@@ -280,15 +281,39 @@ export default {
       this.searchQuery = '';
       this.selectedPlace = null; // 新增，清空搜索時清空選定的地點信息
     },
-    addToItinerary() {
+    async addToItinerary() {
       if (this.selectedPlace && this.selectedPlace.geometry && this.selectedPlace.geometry.location) {
-        const latitude = this.selectedPlace.geometry.location.lat();
-        const longitude = this.selectedPlace.geometry.location.lng();
-        console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
-        this.showToast = true;
-        setTimeout(() => {
-          this.showToast = false;
-        }, 1000); // 提示框顯示1秒後消失
+        // 優先使用 formatted_address，如果不存在則使用 vicinity
+        const address = this.selectedPlace.formatted_address || this.selectedPlace.vicinity || '';
+        
+        const place = {
+          place_id: this.selectedPlace.place_id,
+          name: this.selectedPlace.name,
+          latitude: this.selectedPlace.geometry.location.lat(),
+          longitude: this.selectedPlace.geometry.location.lng(),
+          address: address,
+          visited: false,
+        };
+
+        const itineraryId = this.selectedItinerary.itinerary_id;
+
+        try {
+          const response = await axios.post('https://eeef-220-132-106-138.ngrok-free.app/add_place', {
+            itinerary_id: itineraryId,
+            place: place,
+          });
+
+          if (response.data.status === 'success') {
+            this.showToast = true;
+            setTimeout(() => {
+              this.showToast = false;
+            }, 1000); // 提示框顯示1秒後消失
+          } else {
+            console.error('後端錯誤:', response.data.message || '未知錯誤');
+          }
+        } catch (error) {
+          console.error('網絡錯誤:', error.message);
+        }
       }
     },
   }
