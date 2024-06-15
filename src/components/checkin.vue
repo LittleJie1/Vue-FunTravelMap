@@ -1,46 +1,87 @@
 <template>
   <div>
     <div id="map" ref="map" class="map"></div>
-    <button @click="resetMap" class="reset-button">清除標記</button>
+    <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+    <button @click="resetMap" class="reset-button">清除标记</button>
     <button @click="addCurrentLocationMarker" class="current-location-button">打卡</button>
   </div>
 </template>
 
 <script>
-/* global google, liff */
+/* global google */
+import axios from 'axios';
+
 export default {
   name: 'Checkin',
   data() {
     return {
       map: null,
       markers: [],
-      savedState: {},
+      errorMessage: '',
+      userProfile: null,
       taiwanBounds: {
         north: 28,
         south: 20,
         east: 123,
         west: 117,
       },
-      isLiff: false, // 添加用於判斷是否為 LIFF 環境的標誌
+      scriptLoaded: false,
+      liffInitialized: false,
     };
   },
   mounted() {
-    if (localStorage.getItem('mapState')) {
-      this.savedState = JSON.parse(localStorage.getItem('mapState'));
-    }
-    this.loadMapScript();
-    this.checkLiffEnvironment();
+    this.initializeLiff();
   },
   methods: {
     loadMapScript() {
+      if (this.scriptLoaded) {
+        this.initMap();
+        return;
+      }
+
       const script = document.createElement('script');
       script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyASHb6WIbfA0TkqvWtDzv5hELC_o2kyPO4&libraries=places&callback=initMap`;
       script.async = true;
       script.defer = true;
+      script.onload = () => {
+        this.initMap();
+      };
       document.head.appendChild(script);
-      window.initMap = this.initMap;
+      window.initMap = this.initMap.bind(this);
+      this.scriptLoaded = true;
+    },
+    async initializeLiff() {
+      if (!window.liff) return;
+
+      const liffId = "2005515760-KDlVv7YG"; // 确保 LIFF ID 是正确的
+      try {
+        if (!window.liff.isInit) {
+          await window.liff.init({ liffId });
+          window.liff.isInit = true;
+        }
+
+        if (window.liff.isLoggedIn()) {
+          this.getUserProfile();
+          this.loadMapScript(); // 只有在用户已登录后才加载地图脚本
+        } else {
+          window.liff.login({ redirectUri: window.location.href });
+        }
+      } catch (err) {
+        this.errorMessage = 'LIFF Initialization failed: ' + err.message;
+      }
+    },
+    getUserProfile() {
+      window.liff.getProfile().then(profile => {
+        this.userProfile = profile;
+      }).catch(err => {
+        this.errorMessage = 'Error getting profile: ' + err.message;
+      });
     },
     initMap() {
+      if (this.map) {
+        return;
+      }
+
       this.map = new google.maps.Map(this.$refs.map, {
         center: { lat: 23.6978, lng: 120.9605 },
         zoom: 8,
@@ -54,10 +95,65 @@ export default {
 
       this.map.setCenter({ lat: 23.6978, lng: 120.9605 });
 
-      for (const key in this.savedState) {
-        const [lat, lng] = key.split('_').map(Number);
-        this.addMarker(new google.maps.LatLng(lat, lng), this.savedState[key].timestamp);
-      }
+      this.fetchMarkers();
+
+      this.map.addListener('click', (event) => {
+        const pos = {
+          lat: event.latLng.lat(),
+          lng: event.latLng.lng()
+        };
+        const timestamp = new Date().toISOString();
+        this.addMarker(pos, timestamp);
+
+        if (this.userProfile) {
+          axios.post('https://a46c-114-45-71-5.ngrok-free.app/checkin', {
+            latitude: pos.lat,
+            longitude: pos.lng,
+            timestamp: timestamp,
+            userProfile: this.userProfile
+          })
+          .then(() => {
+            console.log('Check-in saved successfully');
+          })
+          .catch(error => {
+            this.errorMessage = 'Error saving check-in: ' + error.message;
+            console.error('Error saving check-in:', error);
+          });
+        } else {
+          this.errorMessage = 'User profile is not loaded';
+        }
+      });
+    },
+    fetchMarkers() {
+      axios.post('https://a46c-114-45-71-5.ngrok-free.app/fetch_checkins')
+        .then(response => {
+          console.log('Response data:', response.data);
+          console.log('Data type:', typeof response.data);
+
+          if (Array.isArray(response.data)) {
+            response.data.forEach(user => {
+              if (user.checkins && Array.isArray(user.checkins)) {
+                user.checkins.forEach(checkin => {
+                  const position = { lat: checkin.latitude, lng: checkin.longitude };
+                  this.addMarker(position, checkin.timestamp);
+                });
+              }
+            });
+          } else {
+            this.errorMessage = 'Unexpected response data format';
+          }
+        })
+        .catch(error => {
+          this.errorMessage = 'Error fetching check-ins: ' + error.message;
+          console.error('Error fetching check-ins:', error);
+          if (error.response) {
+            console.error('Response data:', error.response.data);
+            console.error('Response status:', error.response.status);
+            console.error('Response headers:', error.response.headers);
+          } else {
+            console.error('Error message:', error.message);
+          }
+        });
     },
     addMarker(position, timestamp) {
       const marker = new google.maps.Marker({
@@ -102,15 +198,31 @@ export default {
           const timestamp = new Date().toISOString();
           this.addMarker(pos, timestamp);
 
-          const positionKey = `${pos.lat}_${pos.lng}`;
-          this.savedState[positionKey] = { timestamp };
-          localStorage.setItem('mapState', JSON.stringify(this.savedState));
+          if (this.userProfile) {
+            axios.post('https://a46c-114-45-71-5.ngrok-free.app/checkin', {
+              latitude: pos.lat,
+              longitude: pos.lng,
+              timestamp: timestamp,
+              userProfile: this.userProfile
+            })
+            .then(() => {
+              console.log('Check-in saved successfully');
+            })
+            .catch(error => {
+              this.errorMessage = 'Error saving check-in: ' + error.message;
+              console.error('Error saving check-in:', error);
+            });
+          } else {
+            this.errorMessage = 'User profile is not loaded';
+          }
 
           this.map.setCenter(pos);
         }, () => {
+          this.errorMessage = '無法獲取當前位置';
           alert('無法獲取當前位置');
         });
       } else {
+        this.errorMessage = '瀏覽器不支援定位系統';
         alert('瀏覽器不支援定位系統');
       }
     },
@@ -118,36 +230,38 @@ export default {
       this.$router.push({ name: 'DetailView', params: { timestamp } });
     },
     resetMap() {
-      localStorage.removeItem('mapState');
-      this.savedState = {};
-
-      for (let marker of this.markers) {
-        marker.setMap(null);
-      }
-      this.markers = [];
-    },
-    checkLiffEnvironment() {
-      if (typeof liff !== 'undefined') {
-        liff.init({ liffId: '2005515760-KDlVv7YG' })
-          .then(() => {
-            this.isLiff = true;
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('from') === 'richmenu') {
-              this.addCurrentLocationMarker(); // 只在從 rich menu 進入時打卡
-            }
-          })
-          .catch((err) => {
-            console.error('LIFF initialization failed', err);
+      axios.delete('https://a46c-114-45-71-5.ngrok-free.app/checkins')
+        .then(() => {
+          console.log('All check-ins deleted successfully');
+          this.markers.forEach(marker => {
+            marker.setMap(null);
           });
-      }
+          this.markers = [];
+        })
+        .catch(error => {
+          this.errorMessage = 'Error deleting check-ins: ' + error.message;
+          console.error('Error deleting check-ins:', error);
+        });
     }
   },
+  beforeDestroy() {
+    // 清除地图上的所有标记
+    if (this.markers.length) {
+      this.markers.forEach(marker => marker.setMap(null));
+      this.markers = [];
+    }
+    // 移除地图引用
+    if (this.map) {
+      google.maps.event.clearInstanceListeners(this.map);
+      this.map = null;
+    }
+  }
 };
 </script>
 
 <style>
 .map {
-  height: 80vh;
+  height: 60vh;
   width: 100%;
 }
 
@@ -164,5 +278,10 @@ export default {
 }
 .current-location-button {
   left: 120px;
+}
+
+.error-message {
+  color: red;
+  margin-top: 10px;
 }
 </style>
