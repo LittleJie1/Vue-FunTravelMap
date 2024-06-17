@@ -10,7 +10,7 @@
         <h2>{{ itinerary.name }}</h2>
         <p>天數: {{ itinerary.days }}</p>
         <button @click="showConfirmDelete(itinerary.itinerary_id)" class="delete-button">刪除</button>
-        <button @click="selectItineraryAction(itinerary)" class="select-button">選擇</button>
+        <button @click="selectItineraryAction(itinerary)" class="select-button">行程安排</button>
       </div>
     </div>
     <div v-else>
@@ -75,7 +75,7 @@ export default {
     ...mapActions(['selectItinerary', 'setSelectedDayIndex']),
     async fetchItineraries(userId) {
       this.errorMessage = '';
-      this.requestUrl = `https://3f91-220-132-106-138.ngrok-free.app/get_itineraries`;
+      this.requestUrl = `${import.meta.env.VITE_API_BASE_URL}/get_itineraries`;
       try {
         const response = await axios.post(this.requestUrl, { user_id: userId });
         if (response.data.status === 'success') {
@@ -100,7 +100,7 @@ export default {
         places: Array.from({ length: this.newItineraryDays }, () => [])
       };
       try {
-        const response = await axios.post('https://3f91-220-132-106-138.ngrok-free.app/add_itinerary', { user_id: userId, itinerary: newItinerary });
+        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/add_itinerary`, { user_id: userId, itinerary: newItinerary });
         if (response.data.status === 'success') {
           this.itineraries.push(newItinerary);
           this.showCreateItineraryForm = false;
@@ -127,10 +127,15 @@ export default {
       }
 
       try {
-        const response = await axios.post('https://3f91-220-132-106-138.ngrok-free.app/delete_itinerary', { user_id: userId, itinerary_id: this.itineraryToDelete });
+        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/delete_itinerary`, { user_id: userId, itinerary_id: this.itineraryToDelete });
         if (response.data.status === 'success') {
           this.itineraries = this.itineraries.filter(itinerary => itinerary.itinerary_id !== this.itineraryToDelete);
           this.errorMessage = '';
+          // 清除選中的行程
+          if (this.itineraries.length === 0) {
+            this.$store.commit('setSelectedItinerary', null);
+            this.setSelectedDayIndex(0);
+          }
         } else {
           this.errorMessage = `後端錯誤: ${response.data.message || '未知錯誤'}`;
         }
@@ -147,7 +152,7 @@ export default {
     },
     selectItineraryAction(itinerary) {
       this.selectItinerary(itinerary);
-      this.setSelectedDayIndex(0); // 初始化選中的天數索引為第1天
+      // this.setSelectedDayIndex(0); // 初始化選中的天數索引為第1天
       this.$router.push('/journey'); // 導航到Journey.vue
     },
   }

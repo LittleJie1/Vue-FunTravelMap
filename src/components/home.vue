@@ -301,7 +301,7 @@ export default {
         const dayIndex = this.selectedDayIndex;
 
         try {
-          const response = await axios.post('https://3f91-220-132-106-138.ngrok-free.app/add_place', {
+          const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/add_place`, {
             itinerary_id: itineraryId,
             day_index: dayIndex,
             place: place,
@@ -457,8 +457,8 @@ export default {
   bottom: 80px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #333;
-  color: white;
+  background-color: #009c0a;
+  color: rgb(220, 255, 224);
   padding: 10px 20px;
   border-radius: 5px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
