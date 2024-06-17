@@ -1,55 +1,59 @@
 <template>
   <div>
-    <h1>詳細信息頁面</h1>
-    <p>打卡時間: {{ formattedTimestamp }}</p>
-    <button @click="goBack">返回地圖</button>
+    <h1>Detail View</h1>
+    <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+    <div v-if="checkinDetails">
+      <p>紀錄時間: {{ new Date(checkinDetails.timestamp).toLocaleString() }}</p>
+    </div>
+    <button @click="goBack">返回</button>
   </div>
 </template>
 
 <script>
 import axios from 'axios';
-import { mapGetters } from 'vuex';
 
 export default {
   name: 'DetailView',
+  props: ['timestamp', 'checkinId'],  // 接收從路由傳遞過來的 props
   data() {
     return {
-      timestamp: null,
+      checkinDetails: null,
+      errorMessage: '',
     };
   },
-  computed: {
-    ...mapGetters(['getLiffData']),
-    formattedTimestamp() {
-      return this.timestamp ? new Date(this.timestamp).toLocaleString() : '未提供';
-    },
+  mounted() {
+    console.log('Props received:', this.timestamp, this.checkinId);  // 打印接收到的 props
+    this.loadCheckinDetails();
   },
   methods: {
-    goBack() {
-      this.$router.push({ name: 'Checkin' });
-    },
-    fetchTimestamp() {
-      const userId = this.getLiffData.userId; // 从 Vuex 获取 userId
-      console.log('userId:', userId); // 添加日志
-      if (!userId) {
-        console.error('userId is missing');
-        return;
-      }
-      axios.post('https://3158-114-45-71-5.ngrok-free.app/checkin/timestamp', { userId })
+    loadCheckinDetails() {
+      const checkinId = this.checkinId;
+      axios.post(`https://3158-114-45-71-5.ngrok-free.app/checkin/${checkinId}`, {})
         .then(response => {
-          console.log('response data:', response.data); // 添加日志
-          this.timestamp = response.data.timestamp;
+          this.checkinDetails = response.data;
         })
         .catch(error => {
-          console.error('Error fetching check-in timestamp:', error);
+          this.handleError(error, 'Error fetching check-in details');
         });
     },
-  },
-  created() {
-    this.fetchTimestamp();
-  },
+    goBack() {
+      this.$router.go(-1);
+    },
+    handleError(error, message) {
+      this.errorMessage = message + ': ' + error.message;
+      console.error(message, error);
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+        console.error('Response headers:', error.response.headers);
+      }
+    }
+  }
 };
 </script>
 
-<style>
-/* 可根据需要添加样式 */
+<style scoped>
+.error-message {
+  color: red;
+}
 </style>

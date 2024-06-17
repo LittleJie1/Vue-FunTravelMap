@@ -2,7 +2,7 @@
   <div>
     <div id="map" ref="map" class="map-container"></div>
     <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-    <button @click="resetMap" class="reset-button">清除標記</button>
+    <button @click="resetMap" class="reset-button">清除标记</button>
     <button @click="addCurrentLocationMarker" class="current-location-button">打卡</button>
   </div>
 </template>
@@ -96,7 +96,7 @@ export default {
                 lng: event.latLng.lng()
               };
               const timestamp = new Date().toISOString();
-              this.addMarker(pos, timestamp, null); // 添加 null 作为 checkinId
+              this.addMarker(pos, timestamp);
 
               if (this.userProfile) {
                 axios.post('https://3158-114-45-71-5.ngrok-free.app/checkin', {
@@ -107,7 +107,7 @@ export default {
                 })
                 .then((response) => {
                   const checkinId = response.data.checkinId;
-                  this.addMarker(pos, timestamp, checkinId); // 使用返回的 checkinId 更新标记
+                  this.addMarker(pos, timestamp, checkinId); // 使用返回的 checkinId
                   console.log('Check-in saved successfully');
                 })
                 .catch(error => {
@@ -154,7 +154,7 @@ export default {
               if (user.checkins && Array.isArray(user.checkins)) {
                 user.checkins.forEach(checkin => {
                   const position = { lat: checkin.latitude, lng: checkin.longitude };
-                  this.addMarker(position, checkin.timestamp, checkin._id);
+                  this.addMarker(position, checkin.timestamp, checkin.checkinId); // 傳遞 checkinId
                 });
               }
             });
@@ -178,7 +178,7 @@ export default {
 
       const infoWindowContent = document.createElement('div');
       const formattedTimestamp = new Date(timestamp).toLocaleString();
-      infoWindowContent.innerHTML = `這是一個訊息窗口<br>打卡時間: ${formattedTimestamp}<br><button id="edit-btn">編輯</button>`;
+      infoWindowContent.innerHTML = `這是一個訊息窗口<br>紀錄時間: ${formattedTimestamp}<br><button class="edit-btn">編輯</button>`;
 
       const infoWindow = new google.maps.InfoWindow({
         content: infoWindowContent,
@@ -188,9 +188,10 @@ export default {
       marker.addListener('click', () => {
         infoWindow.open(this.map, marker);
         this.$nextTick(() => {
-          const editBtn = document.getElementById('edit-btn');
+          const editBtn = infoWindowContent.querySelector('.edit-btn');
           if (editBtn) {
             editBtn.addEventListener('click', () => {
+              console.log('Edit button clicked, checkinId:', checkinId);  // 添加日志檢查 checkinId
               this.editMarker(timestamp, checkinId);
             });
           }
@@ -207,7 +208,7 @@ export default {
             lng: position.coords.longitude
           };
           const timestamp = new Date().toISOString();
-          this.addMarker(pos, timestamp, null); // 添加 null 作为 checkinId
+          this.addMarker(pos, timestamp);
 
           if (this.userProfile) {
             axios.post('https://3158-114-45-71-5.ngrok-free.app/checkin', {
@@ -216,9 +217,7 @@ export default {
               timestamp: timestamp,
               userProfile: this.userProfile
             })
-            .then((response) => {
-              const checkinId = response.data.checkinId;
-              this.addMarker(pos, timestamp, checkinId); // 使用返回的 checkinId 更新标记
+            .then(() => {
               console.log('Check-in saved successfully');
             })
             .catch(error => {
@@ -239,7 +238,8 @@ export default {
       }
     },
     editMarker(timestamp, checkinId) {
-      this.$router.push({ name: 'DetailView', params: { checkinId, timestamp } });
+      console.log('Editing check-in:', checkinId);  // 添加日志檢查 checkinId
+      this.$router.push({ name: 'DetailView', query: { timestamp, checkinId } }); // 使用 query 傳遞參數
     },
     resetMap() {
       axios.delete('https://3158-114-45-71-5.ngrok-free.app/checkins')

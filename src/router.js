@@ -19,7 +19,8 @@ const routes = [
   { 
     path: '/detailview', 
     name: 'DetailView', 
-    component: DetailView 
+    component: DetailView,
+    props: route => ({ timestamp: route.query.timestamp, checkinId: route.query.checkinId }) // 確保從 query 獲取參數
   },
   { 
     path: '/planner', 
