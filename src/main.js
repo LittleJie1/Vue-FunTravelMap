@@ -4,48 +4,41 @@ import liff from '@line/liff';
 import router from './router';
 import store from './store';
 
-// 創建 Vue 應用實例
-const app = createApp(App);
+const liffId = '2005515760-nQPja0gB'; // 統一的 LIFF ID
 
-// 使用 Vue Router
-app.use(router);
-
-// 使用 Vuex Store
-app.use(store);
-
-// 將 Vue 應用掛載到 DOM 中的 #app 元素上
-app.mount('#app');
-
-// 定義一個初始化 LIFF 的函數
-let initializedLiffId = null; // 用來記錄已初始化的 LIFF ID
-
-async function initializeLiff(liffId) {
-  if (liffId === initializedLiffId) {
-    return; // 如果 LIFF ID 沒有變化，則不重新初始化
-  }
+// LIFF 初始化函數
+async function initializeLiff() {
   try {
     await liff.init({ liffId });
-    // console.log('LIFF initialized with ID:', liffId);
-
     if (!liff.isLoggedIn()) {
       liff.login();
-      return;
     } else {
       const profile = await liff.getProfile();
       store.dispatch('updateLiffData', profile);
     }
-
-    initializedLiffId = liffId; // 記錄已初始化的 LIFF ID
-
+    console.log(`LIFF initialized successfully with ID: ${liffId}`);
   } catch (error) {
     console.error('LIFF initialization failed', error);
+    // 可以在這裡添加用戶提示或重試邏輯
   }
 }
-// 在導航守衛中初始化 LIFF
-router.beforeEach(async (to, from, next) => {
-  const liffId = to.meta.liffId;
-  if (liffId) {
-    await initializeLiff(liffId);
-  }
-  next();
+
+// 等待 LIFF 初始化完成後再掛載 Vue 應用
+initializeLiff().then(() => {
+  const app = createApp(App);
+
+  app.use(router);
+  app.use(store);
+
+  // 使用異步導航守衛來確保 LIFF 已初始化
+  router.beforeEach((to, from, next) => {
+    console.log(`Navigating to ${to.path}`);
+    if (!liff.isLoggedIn()) {
+      liff.login();
+    } else {
+      next(); // 確保導航不會被阻止
+    }
+  });
+
+  app.mount('#app');
 });

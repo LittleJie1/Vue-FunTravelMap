@@ -66,8 +66,8 @@ export default {
   },
   mounted() {
     if (this.getLiffData) {
-      // this.userId = this.getLiffData.userId;
-      // this.profile = this.getLiffData;
+      this.userId = this.getLiffData.userId;
+      this.profile = this.getLiffData;
       this.fetchItineraries(this.getLiffData.userId);
     } else {
       this.errorMessage = '獲取LIFF數據失敗';
@@ -77,7 +77,7 @@ export default {
     ...mapActions(['selectItinerary']),
     async fetchItineraries(userId) {  //顯示我的行程
       this.errorMessage = '';
-      this.requestUrl = `https://eeef-220-132-106-138.ngrok-free.app/get_itineraries`;
+      this.requestUrl = `https://3158-114-45-71-5.ngrok-free.app/get_itineraries`;
       try {
         const response = await axios.post(this.requestUrl, { user_id: userId });
         if (response.data.status === 'success') {
@@ -113,7 +113,7 @@ export default {
       };
 
       try {
-        const response = await axios.post('https://eeef-220-132-106-138.ngrok-free.app/add_itinerary', { user_id: userId, itinerary: newItinerary });
+        const response = await axios.post('https://3158-114-45-71-5.ngrok-free.app/add_itinerary', { user_id: userId, itinerary: newItinerary });
         if (response.data.status === 'success') {
           this.itineraries.push(newItinerary);
           this.showCreateItineraryForm = false;
@@ -139,7 +139,7 @@ export default {
       }
 
       try {
-        const response = await axios.post('https://eeef-220-132-106-138.ngrok-free.app/delete_itinerary', { user_id: userId, itinerary_id: this.itineraryToDelete });
+        const response = await axios.post('https://3158-114-45-71-5.ngrok-free.app/delete_itinerary', { user_id: userId, itinerary_id: this.itineraryToDelete });
         if (response.data.status === 'success') {
           this.itineraries = this.itineraries.filter(itinerary => itinerary.itinerary_id !== this.itineraryToDelete);
           this.errorMessage = '';

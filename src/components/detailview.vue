@@ -7,14 +7,18 @@
 </template>
 
 <script>
+import axios from 'axios';
+import { mapGetters } from 'vuex';
+
 export default {
   name: 'DetailView',
   data() {
     return {
-      timestamp: this.$route.params.timestamp || null,
+      timestamp: null,
     };
   },
   computed: {
+    ...mapGetters(['getLiffData']),
     formattedTimestamp() {
       return this.timestamp ? new Date(this.timestamp).toLocaleString() : '未提供';
     },
@@ -23,6 +27,25 @@ export default {
     goBack() {
       this.$router.push({ name: 'Checkin' });
     },
+    fetchTimestamp() {
+      const userId = this.getLiffData.userId; // 从 Vuex 获取 userId
+      console.log('userId:', userId); // 添加日志
+      if (!userId) {
+        console.error('userId is missing');
+        return;
+      }
+      axios.post('https://3158-114-45-71-5.ngrok-free.app/checkin/timestamp', { userId })
+        .then(response => {
+          console.log('response data:', response.data); // 添加日志
+          this.timestamp = response.data.timestamp;
+        })
+        .catch(error => {
+          console.error('Error fetching check-in timestamp:', error);
+        });
+    },
+  },
+  created() {
+    this.fetchTimestamp();
   },
 };
 </script>

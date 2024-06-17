@@ -298,7 +298,7 @@ export default {
         const itineraryId = this.selectedItinerary.itinerary_id;
 
         try {
-          const response = await axios.post('https://eeef-220-132-106-138.ngrok-free.app/add_place', {
+          const response = await axios.post('https://3158-114-45-71-5.ngrok-free.app/add_place', {
             itinerary_id: itineraryId,
             place: place,
           });
