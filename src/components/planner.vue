@@ -2,14 +2,15 @@
   <div class="planner-container">
     <div class="header">
       <h1>我的行程</h1>
-      <button v-if="!showCreateItineraryForm" @click="showCreateItineraryForm = true" class="new-itinerary-button">新建行程</button>
+      <button v-if="!showCreateItineraryForm" @click="showCreateItineraryForm = true"
+        class="new-itinerary-button">新建行程</button>
     </div>
     <div class="itineraries-container" v-if="itineraries.length > 0">
       <div v-for="itinerary in itineraries" :key="itinerary.itinerary_id" class="itinerary-card">
         <h2>{{ itinerary.name }}</h2>
-        <p>天數: {{ calculateDays(itinerary.start_date, itinerary.end_date) }}</p>
+        <p>天數: {{ itinerary.days }}</p>
         <button @click="showConfirmDelete(itinerary.itinerary_id)" class="delete-button">刪除</button>
-        <button @click="selectItinerary(itinerary)" class="select-button">選擇</button> <!-- 新增選擇按鈕 -->
+        <button @click="selectItineraryAction(itinerary)" class="select-button">行程安排</button>
       </div>
     </div>
     <div v-else>
@@ -19,9 +20,11 @@
       <div class="modal-content">
         <span class="close" @click="showCreateItineraryForm = false">&times;</span>
         <h3>新建行程</h3>
-        <form @submit.prevent="createItinerary">
+        <form @submit.prevent="createItinerary" class="form-container">
           <label for="itinerary-name">行程名稱</label>
           <input id="itinerary-name" v-model="newItineraryName" required>
+          <label for="itinerary-days">天數</label>
+          <input id="itinerary-days" type="number" v-model.number="newItineraryDays" required min="1">
           <button type="submit" class="new-itinerary-button">建立</button>
         </form>
       </div>
@@ -34,13 +37,7 @@
       </div>
     </div>
   </div>
-  <!-- <div v-if="profile">
-    <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-    <div class="debug-info">
-      <h3>調試信息</h3>
-      <p>Request URL: {{ requestUrl }}</p>
-    </div>
-  </div> -->
+  <div v-if="showToast" class="toast">選擇成功！</div>
 </template>
 
 <script>
@@ -49,16 +46,19 @@ import { v4 as uuidv4 } from 'uuid';
 import { mapActions, mapGetters } from 'vuex';
 
 export default {
+  name: 'Planner',
   data() {
     return {
       itineraries: [],
       showCreateItineraryForm: false,
       newItineraryName: '',
+      newItineraryDays: 1,
       profile: null,
-      errorMessage: '', // 添加錯誤訊息屬性
-      requestUrl: '', // 添加 requestUrl 屬性
-      showConfirmDialog: false,  // 控制自定義確認對話框的顯示
-      itineraryToDelete: null,  // 要刪除的行程ID
+      errorMessage: '',
+      requestUrl: '',
+      showConfirmDialog: false,
+      itineraryToDelete: null,
+      showToast: null,
     };
   },
   computed: {
@@ -66,18 +66,16 @@ export default {
   },
   mounted() {
     if (this.getLiffData) {
-      // this.userId = this.getLiffData.userId;
-      // this.profile = this.getLiffData;
       this.fetchItineraries(this.getLiffData.userId);
     } else {
       this.errorMessage = '獲取LIFF數據失敗';
     }
   },
   methods: {
-    ...mapActions(['selectItinerary']),
-    async fetchItineraries(userId) {  //顯示我的行程
+    ...mapActions(['selectItinerary', 'setSelectedDayIndex']),
+    async fetchItineraries(userId) {
       this.errorMessage = '';
-      this.requestUrl = `https://eeef-220-132-106-138.ngrok-free.app/get_itineraries`;
+      this.requestUrl = `${import.meta.env.VITE_API_BASE_URL}/get_itineraries`;
       try {
         const response = await axios.post(this.requestUrl, { user_id: userId });
         if (response.data.status === 'success') {
@@ -89,36 +87,26 @@ export default {
         this.errorMessage = `網絡錯誤: ${error.message}. ${error.response ? JSON.stringify(error.response.data) : ''}`;
       }
     },
-    calculateDays(startDate, endDate) {
-      if (!startDate || !endDate) return '未設定天數';
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      const diffTime = Math.abs(end - start);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      return diffDays;
-    },
-    async createItinerary() {   //創建行程
+    async createItinerary() {
       const userId = this.getLiffData.userId;
       if (!userId) {
         this.errorMessage = '無法獲取用戶ID';
         return;
       }
-
       const newItinerary = {
         itinerary_id: uuidv4(),
         name: this.newItineraryName,
-        start_date: null, // 未來設置
-        end_date: null, // 未來設置
-        places: []
+        days: this.newItineraryDays,
+        places: Array.from({ length: this.newItineraryDays }, () => [])
       };
-
       try {
-        const response = await axios.post('https://eeef-220-132-106-138.ngrok-free.app/add_itinerary', { user_id: userId, itinerary: newItinerary });
+        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/add_itinerary`, { user_id: userId, itinerary: newItinerary });
         if (response.data.status === 'success') {
           this.itineraries.push(newItinerary);
           this.showCreateItineraryForm = false;
           this.newItineraryName = '';
-          this.errorMessage = ''; // 清除錯誤訊息
+          this.newItineraryDays = 1;
+          this.errorMessage = '';
         } else {
           this.errorMessage = `後端錯誤: ${response.data.message || '未知錯誤'}`;
         }
@@ -139,10 +127,15 @@ export default {
       }
 
       try {
-        const response = await axios.post('https://eeef-220-132-106-138.ngrok-free.app/delete_itinerary', { user_id: userId, itinerary_id: this.itineraryToDelete });
+        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/delete_itinerary`, { user_id: userId, itinerary_id: this.itineraryToDelete });
         if (response.data.status === 'success') {
           this.itineraries = this.itineraries.filter(itinerary => itinerary.itinerary_id !== this.itineraryToDelete);
           this.errorMessage = '';
+          // 清除選中的行程
+          if (this.itineraries.length === 0) {
+            this.$store.commit('setSelectedItinerary', null);
+            this.setSelectedDayIndex(0);
+          }
         } else {
           this.errorMessage = `後端錯誤: ${response.data.message || '未知錯誤'}`;
         }
@@ -156,7 +149,12 @@ export default {
     cancelDelete() {
       this.showConfirmDialog = false;
       this.itineraryToDelete = null;
-    }
+    },
+    selectItineraryAction(itinerary) {
+      this.selectItinerary(itinerary);
+      // this.setSelectedDayIndex(0); // 初始化選中的天數索引為第1天
+      this.$router.push('/journey'); // 導航到Journey.vue
+    },
   }
 };
 </script>
@@ -197,7 +195,6 @@ export default {
 }
 
 button {
-  background-color: #63a5eb;
   color: white;
   border: none;
   border-radius: 5px;
@@ -220,8 +217,7 @@ button {
 }
 
 .select-button {
-  background-color: #007bff;
-  color: white;
+  color: #007bff;
   padding: 5px 10px;
   font-size: 12px;
   position: absolute;
@@ -261,6 +257,24 @@ button {
   font-weight: bold;
 }
 
+.form-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.form-container label {
+  margin-top: 10px;
+}
+
+.form-container input {
+  margin-bottom: 10px;
+  width: 80%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
 .confirm-button {
   background-color: #28a745;
   color: white;
@@ -279,4 +293,18 @@ button {
   margin-top: 10px;
 }
 
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  opacity: 0.9;
+  z-index: 9999;
+  transition: opacity 0.5s ease-out;
+}
 </style>

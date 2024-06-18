@@ -29,6 +29,9 @@ export default {
       liffInitialized: false,
     };
   },
+  computed: {
+    ...mapGetters(['getLiffData']),
+  },
   mounted() {
     this.initializeLiff();
   },
@@ -83,7 +86,7 @@ export default {
       }
 
       this.map = new google.maps.Map(this.$refs.map, {
-        center: { lat: 23.6978, lng: 120.9605 },
+        center: pos,
         zoom: 8,
         minZoom: 8,
         restriction: {

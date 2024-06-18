@@ -16,6 +16,7 @@
     "vite-plugin-commonjs": "^0.10.1",
     "vue": "^3.4.27",
     "vue-router": "^4.3.2",
+    "vue3-smooth-dnd": "^0.0.6",
     "vuex": "^4.1.0"
   },
   "devDependencies": {
