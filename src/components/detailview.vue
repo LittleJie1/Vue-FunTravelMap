@@ -28,7 +28,7 @@ export default {
   methods: {
     loadCheckinDetails() {
       const checkinId = this.checkinId;
-      axios.post(`https://3158-114-45-71-5.ngrok-free.app/checkin/${checkinId}`, {})
+      axios.post(`https://a4bd-114-24-172-69.ngrok-free.app/${checkinId}`, {})
         .then(response => {
           this.checkinDetails = response.data;
         })
