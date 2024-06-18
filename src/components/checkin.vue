@@ -2,7 +2,7 @@
   <div>
     <div id="map" ref="map" class="map-container"></div>
     <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-    <button @click="resetMap" class="reset-button">清除标记</button>
+    <button @click="resetMap" class="reset-button">清除標記</button>
     <button @click="addCurrentLocationMarker" class="current-location-button">打卡</button>
   </div>
 </template>
@@ -27,6 +27,7 @@ export default {
         west: 117,
       },
       scriptLoaded: false,
+      checkinName: '未命名', // 預設值
     };
   },
   computed: {
@@ -99,10 +100,11 @@ export default {
               this.addMarker(pos, timestamp);
 
               if (this.userProfile) {
-                axios.post('https://3158-114-45-71-5.ngrok-free.app/checkin', {
+                axios.post('https://537d-114-24-172-69.ngrok-free.app/checkin', {
                   latitude: pos.lat,
                   longitude: pos.lng,
                   timestamp: timestamp,
+                  checkinName: this.checkinName, // 添加 checkinName
                   userProfile: this.userProfile
                 })
                 .then((response) => {
@@ -146,7 +148,7 @@ export default {
       }).open(this.map);
     },
     fetchMarkers() {
-      axios.post('https://3158-114-45-71-5.ngrok-free.app/fetch_checkins')
+      axios.post('https://537d-114-24-172-69.ngrok-free.app/fetch_checkins')
         .then(response => {
           console.log('Response data:', response.data);
           if (Array.isArray(response.data)) {
@@ -178,7 +180,7 @@ export default {
 
       const infoWindowContent = document.createElement('div');
       const formattedTimestamp = new Date(timestamp).toLocaleString();
-      infoWindowContent.innerHTML = `這是一個訊息窗口<br>紀錄時間: ${formattedTimestamp}<br><button class="edit-btn">編輯</button>`;
+      infoWindowContent.innerHTML = `${this.checkinName}<br>時間: ${formattedTimestamp}<br><button class="edit-btn">編輯</button>`;
 
       const infoWindow = new google.maps.InfoWindow({
         content: infoWindowContent,
@@ -211,10 +213,11 @@ export default {
           this.addMarker(pos, timestamp);
 
           if (this.userProfile) {
-            axios.post('https://3158-114-45-71-5.ngrok-free.app/checkin', {
+            axios.post('https://537d-114-24-172-69.ngrok-free.app/checkin', {
               latitude: pos.lat,
               longitude: pos.lng,
               timestamp: timestamp,
+              checkinName: this.checkinName, // 添加 checkinName
               userProfile: this.userProfile
             })
             .then(() => {
@@ -242,7 +245,7 @@ export default {
       this.$router.push({ name: 'DetailView', query: { timestamp, checkinId } }); // 使用 query 傳遞參數
     },
     resetMap() {
-      axios.delete('https://3158-114-45-71-5.ngrok-free.app/checkins')
+      axios.delete('https://537d-114-24-172-69.ngrok-free.app/checkins')
         .then(() => {
           console.log('All check-ins deleted successfully');
           this.markers.forEach(marker => {

@@ -2,7 +2,7 @@
   <div>
     <div class="search-container">
       <input id="autocomplete-input" class="controls" type="text" v-model="searchQuery" placeholder="搜尋地點" />
-      <button class="clear-button" @click="clearSearch">x</button>
+      <button class="clear-button" @click="clearSearch">✖</button>
     </div>
     <div ref="mapContainer" class="map-container"></div>
     <div class="buttons">
@@ -13,6 +13,7 @@
       <button @click="showNearbyPlaces('bus_station')">捷運站</button>
     </div>
     <div v-if="selectedPlace" class="info-container">
+      <button class="close-button" @click="clearSelectedPlace">✖</button> <!-- 新增X -->
       <div class="info-content">
         <div class="info-image" v-if="selectedPlace.photos && selectedPlace.photos.length">
           <img :src="selectedPlace.photos[0].getUrl()" alt="Place Image">
@@ -26,10 +27,6 @@
     </div>
     <div v-if="showToast" class="toast">加入成功！</div>
   </div>
-  <!-- <div v-if="profile">
-    <h3>User Profile</h3>
-    <p>Name: {{ profile.displayName }}</p>
-  </div> -->
 </template>
 
 <script>
@@ -56,10 +53,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(['getLiffData', 'selectedItinerary']),
-  },
-  async mounted() { // 畫面載入時執行
-    this.initMap();
+    ...mapGetters(['getLiffData', 'selectedItinerary', 'selectedDayIndex']),
   },
   async mounted() {
     if (this.getLiffData) {
@@ -76,8 +70,7 @@ export default {
       });
 
       try {
-        await loader.importLibrary("maps");
-
+        await loader.load();
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
             (position) => {
@@ -141,31 +134,37 @@ export default {
         console.error("No details available for input: '" + place.name + "'");
         return;
       }
-      
+
       // 清除舊的標記
       this.clearMarkers();
 
-      // 繪製新的標記
-      const rating = place.rating ? place.rating : '無評價';
-      const text = `${place.name}  ${rating}`;
+      function getTextWidth(text, font) {
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        context.font = font;
+        return context.measureText(text).width;
+      }
 
-      // 計算文本寬度，設置適當的SVG寬度
-      const textWidth = text.length * 8;
-      const svgWidth = textWidth + 30; // 增加內邊距和標記空間
+      const text = `${place.name}`;
+      const rating = place.rating ? `★ ${place.rating}` : '無評價';
+      const font = '12px Arial, Helvetica, sans-serif';
+
+      const textWidth = getTextWidth(text, font);
+      const ratingWidth = getTextWidth(rating, font);
+      const svgWidth = Math.max(textWidth, ratingWidth) + 30; // 確保 SVG 寬度足以容納文本和內邊距
       const svgHeight = 80; // 增加高度以容納點和文字
 
-      // 使用SVG來生成自定義標記
       const iconSvg = `
-      <svg xmlns='http://www.w3.org/2000/svg' width='${svgWidth}' height='${svgHeight}'>
-        <rect x='0' y='0' width='${svgWidth}' height='35' rx='8' ry='8' fill='#e3f2fd' stroke='#007bff' stroke-width='1'/>
-        <text x='${svgWidth / 2}' y='15' font-size='12' fill='#007bff' font-family='Arial, Helvetica, sans-serif' font-weight='bold' text-anchor='middle'>
-          ${place.name}
-        </text>
-        <text x='${svgWidth / 2}' y='30' font-size='12' fill='#007bff' font-family='Arial, Helvetica, sans-serif' font-weight='bold' text-anchor='middle'>
-          ★ ${rating}
-        </text>
-        <image x='${svgWidth / 2 - 12.5}' y='40' width='25' height='25' href='${this.base64Icon}' />
-      </svg>`;
+<svg xmlns='http://www.w3.org/2000/svg' width='${svgWidth}' height='${svgHeight}'>
+  <rect x='0' y='0' width='${svgWidth}' height='35' rx='8' ry='8' fill='#e3f2fd' stroke='#007bff' stroke-width='1'/>
+  <text x='${svgWidth / 2}' y='15' font-size='12' fill='#007bff' font-family='Arial, Helvetica, sans-serif' font-weight='bold' text-anchor='middle' alignment-baseline='middle'>
+    ${text}
+  </text>
+  <text x='${svgWidth / 2}' y='30' font-size='12' fill='#007bff' font-family='Arial, Helvetica, sans-serif' font-weight='bold' text-anchor='middle' alignment-baseline='middle'>
+    ${rating}
+  </text>
+  <image x='${svgWidth / 2 - 12.5}' y='40' width='25' height='25' href='${this.base64Icon}' />
+</svg>`;
 
       const encodedIconSvg = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(iconSvg)}`;
 
@@ -182,7 +181,7 @@ export default {
       });
 
       this.markers.push(marker);
-      this.selectedPlace = place; // 新增，將選定的地點信息存儲到 selectedPlace 中
+      this.selectedPlace = place;
 
       if (place.geometry.viewport) {
         this.map.fitBounds(place.geometry.viewport);
@@ -190,6 +189,7 @@ export default {
         this.map.setCenter(place.geometry.location);
         this.map.setZoom(15);
       }
+
     },
     showNearbyPlaces(type) { // 顯示景點、餐廳、住宿 車站 方法
       if (!this.placesService || !this.map.getCenter()) {
@@ -281,11 +281,13 @@ export default {
       this.searchQuery = '';
       this.selectedPlace = null; // 新增，清空搜索時清空選定的地點信息
     },
+    clearSelectedPlace() { // 新增的方法，清除選中的地點信息
+      this.selectedPlace = null;
+    },
     async addToItinerary() {
       if (this.selectedPlace && this.selectedPlace.geometry && this.selectedPlace.geometry.location) {
-        // 優先使用 formatted_address，如果不存在則使用 vicinity
         const address = this.selectedPlace.formatted_address || this.selectedPlace.vicinity || '';
-        
+
         const place = {
           place_id: this.selectedPlace.place_id,
           name: this.selectedPlace.name,
@@ -296,10 +298,12 @@ export default {
         };
 
         const itineraryId = this.selectedItinerary.itinerary_id;
+        const dayIndex = this.selectedDayIndex;
 
         try {
-          const response = await axios.post('https://3158-114-45-71-5.ngrok-free.app/add_place', {
+          const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/add_place`, {
             itinerary_id: itineraryId,
+            day_index: dayIndex,
             place: place,
           });
 
@@ -307,7 +311,7 @@ export default {
             this.showToast = true;
             setTimeout(() => {
               this.showToast = false;
-            }, 1000); // 提示框顯示1秒後消失
+            }, 1000);
           } else {
             console.error('後端錯誤:', response.data.message || '未知錯誤');
           }
@@ -319,7 +323,6 @@ export default {
   }
 };
 </script>
-
 
 <style scoped>
 .search-container {
@@ -355,7 +358,7 @@ export default {
   border: none;
   font-size: 16px;
   cursor: pointer;
-  margin-left: -30px;
+  margin-left: -40px;
   z-index: 6;
 }
 
@@ -419,6 +422,8 @@ export default {
   /* 使用省略號表示超出部分 */
   white-space: nowrap;
   /* 防止文本換行 */
+  position: relative;
+  /* 新增 */
 }
 
 .info-container h3 {
@@ -452,8 +457,8 @@ export default {
   bottom: 80px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #333;
-  color: white;
+  background-color: #009c0a;
+  color: rgb(220, 255, 224);
   padding: 10px 20px;
   border-radius: 5px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
@@ -479,5 +484,17 @@ export default {
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+}
+
+/* 新增的 CSS */
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 11;
 }
 </style>

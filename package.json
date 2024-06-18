@@ -12,14 +12,12 @@
     "@googlemaps/js-api-loader": "^1.16.6",
     "@line/liff": "^2.23.2",
     "axios": "^1.7.2",
-    "express": "^4.19.2",
-    "morgan": "^1.10.0",
     "uuid": "^10.0.0",
     "vite-plugin-commonjs": "^0.10.1",
     "vue": "^3.4.27",
     "vue-router": "^4.3.2",
-    "vuex": "^4.1.0",
-    "winston": "^3.13.0"
+    "vue3-smooth-dnd": "^0.0.6",
+    "vuex": "^4.1.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",

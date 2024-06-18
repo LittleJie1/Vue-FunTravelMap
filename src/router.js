@@ -3,7 +3,7 @@ import Home from './components/home.vue';
 import Checkin from './components/checkin.vue';
 import DetailView from './components/detailview.vue';
 import Planner from './components/planner.vue';
-// import Journey from './components/journey.vue';
+import Journey from './components/journey.vue';
 
 const routes = [
   { 
@@ -27,10 +27,10 @@ const routes = [
     name: 'Planner', 
     component: Planner 
   },
-  // { path: '/journey', 
-  //   name: 'Journey', 
-  //   component: Journey 
-  // },
+  { path: '/journey', 
+    name: 'Journey', 
+    component: Journey 
+  },
 ];
 
 const router = createRouter({
