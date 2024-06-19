@@ -13,7 +13,7 @@
       <button @click="showNearbyPlaces('bus_station')">捷運站</button>
     </div>
     <div v-if="selectedPlace" class="info-container">
-      <button class="close-button" @click="clearSelectedPlace">✖</button> <!-- 新增X -->
+      <button class="close-button" @click="clearSelectedPlace">✖</button>
       <div class="info-content">
         <div class="info-image" v-if="selectedPlace.photos && selectedPlace.photos.length">
           <img :src="selectedPlace.photos[0].getUrl()" alt="Place Image">
@@ -24,6 +24,14 @@
           <button v-if="selectedItinerary" class="add-button" @click="addToItinerary">+ 加入行程</button>
         </div>
       </div>
+    </div>
+    <div v-else class="info-placeholder">
+      歡迎使用趣旅圖!<br>
+      請先至
+      <span style="font-weight: bold; color: #CE0000;">行程總覽</span>
+      創建行程<br>
+      點選<span style="font-weight: bold; color: #CE0000;">行程安排</span>點擊上方的天數<br>
+      返回此頁面搜尋景點並加入行程!
     </div>
     <div v-if="showToast" class="toast">加入成功！</div>
   </div>
@@ -465,6 +473,13 @@ export default {
   opacity: 0.9;
   z-index: 9999;
   transition: opacity 0.5s ease-out;
+}
+
+.info-placeholder {
+  text-align: center;
+  padding: 50px;
+  color: #666;
+  font-size: 18px;
 }
 
 .buttons {

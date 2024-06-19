@@ -1,35 +1,67 @@
 <template>
-  <div class="journey-container" v-if="selectedItinerary">
-    <div class="header">
-      <h1>{{ selectedItinerary.name }}</h1>
-      <button @click="optimizeRoute" class="optimize-button">最佳路線</button>
-      <button @click="goBack" class="back-button">返回</button>
-    </div>
-    <div class="days-container-wrapper">
-      <div class="days-container">
-        <button v-for="(day, index) in daysArray" :key="index" @click="selectDay(index)"
-          :class="{ 'selected-day': index === selectedDayIndex }">
-          第 {{ index + 1 }} 天
-        </button>
+  <div>
+    <div class="journey-container" v-if="selectedItinerary">
+      <div class="header">
+        <h1>{{ selectedItinerary.name }}</h1>
+        <button @click="optimizeRoute" class="optimize-button">最佳路線</button>
+        <button @click="goBack" class="back-button">返回</button>
       </div>
-      <div class="modify-buttons">
-        <button @click="addDay" class="modify-day-button">+</button>
-        <button @click="removeDay" class="modify-day-button">-</button>
+      <div class="city-selection">
+        <label for="city-select">智能推薦行程：</label>
+        <select id="city-select" v-model="selectedCity">
+          <option v-for="city in cities" :key="city" :value="city">{{ city }}</option>
+        </select>
+        <button @click="openConfirmationDialog" class="confirm-button">確認</button>
       </div>
-    </div>
-    <div class="places-container">
-      <Container @drop="onDrop">
-        <Draggable v-for="(place, index) in selectedDayPlaces" :key="place.place_id">
-          <div class="place-card" :class="{ 'visited-place': place.visited }">
-            <div class="place-buttons">
-              <button v-if="index !== 0" @click="movePlace(index, 'up')">▲</button>
-              <button v-if="index !== selectedDayPlaces.length - 1" @click="movePlace(index, 'down')">▼</button>
+      <div class="days-container-wrapper">
+        <div class="days-container">
+          <button v-for="(day, index) in daysArray" :key="index" @click="selectDay(index)"
+            :class="{ 'selected-day': index === selectedDayIndex }">
+            第 {{ index + 1 }} 天
+          </button>
+        </div>
+        <div class="modify-buttons">
+          <button @click="addDay" class="modify-day-button">+</button>
+          <button @click="removeDay" class="modify-day-button">-</button>
+        </div>
+      </div>
+      <div v-if="selectedDayPlaces.length > 0" class="places-container">
+        <Container @drop="onDrop">
+          <Draggable v-for="(place, index) in selectedDayPlaces" :key="place.place_id">
+            <div class="place-card" :class="{ 'visited-place': place.visited }">
+              <div class="place-buttons">
+                <button v-if="index !== 0" @click="movePlace(index, 'up')">▲</button>
+                <button v-if="index !== selectedDayPlaces.length - 1" @click="movePlace(index, 'down')">▼</button>
+              </div>
+              <h3>{{ place.name }}</h3>
+              <button @click="deletePlace(index)" class="delete-button">✖</button>
             </div>
-            <h3>{{ place.name }}</h3>
-            <button @click="deletePlace(index)" class="delete-button">✖</button>
+          </Draggable>
+        </Container>
+        <div class="dynamic-placeholder">
+          調整景點順序<br>
+          請點上下箭頭 或 久按拖曳調整
+        </div>
+      </div>
+      <div v-else class="no-places-placeholder">
+        點擊上方欲安排的天數<br>返回
+        <span style="font-weight: bold; color: #CE0000;">找景點</span>安排行程<br><br><br>
+      </div>
+    </div>
+    <div v-if="showConfirmationDialog">
+      <div class="overlay" @click="closeConfirmationDialog"></div>
+      <div class="confirmation-dialog">
+        <div class="dialog-content">
+          <p>智能推薦會取代當天行程<br>是否確認</p>
+          <div class="dialog-buttons">
+            <button @click="confirmCitySelection">確定</button>
+            <button @click="closeConfirmationDialog">取消</button>
           </div>
-        </Draggable>
-      </Container>
+        </div>
+      </div>
+    </div>
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner"></div>
     </div>
   </div>
 </template>
@@ -49,11 +81,9 @@ function applyDrag(arr, dragResult) {
   if (removedIndex !== null) {
     itemToAdd = result.splice(removedIndex, 1)[0];
   }
-
   if (addedIndex !== null) {
     result.splice(addedIndex, 0, itemToAdd);
   }
-
   return result;
 }
 
@@ -65,7 +95,11 @@ export default {
   },
   data() {
     return {
-      dayPlaces: [] // 可變的 dayPlaces 數據屬性
+      dayPlaces: [], // 可變的 dayPlaces 數據屬性
+      selectedCity: '',
+      cities: ['台北市', '新北市', '台中市', '台南市', '高雄市', '基隆市', '新竹市', '嘉義市', '桃園市', '新竹縣', '苗栗縣', '彰化縣', '南投縣', '雲林縣', '嘉義縣', '屏東縣', '宜蘭縣', '花蓮縣', '台東縣', '澎湖縣', '金門縣', '連江縣'], // 縣市列表
+      showConfirmationDialog: false,
+      loading: false
     };
   },
   computed: {
@@ -198,6 +232,33 @@ export default {
         console.error('Error optimizing route:', error);
       }
     },
+    openConfirmationDialog() {
+      this.showConfirmationDialog = true;
+    },
+    closeConfirmationDialog() {
+      this.showConfirmationDialog = false;
+    },
+    async confirmCitySelection() {
+      this.loading = true;
+      try {
+        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/process_city_selection`, {
+          city_name: this.selectedCity,
+          itinerary_id: this.selectedItinerary.itinerary_id,
+          day_index: this.selectedDayIndex
+        });
+        if (response.data.status === 'success') {
+          this.selectedItinerary.places[this.selectedDayIndex] = response.data.places;
+          this.dayPlaces = [...response.data.places];
+          this.showConfirmationDialog = false;
+        } else {
+          console.error(response.data.message);
+        }
+      } catch (error) {
+        console.error('Error processing city selection:', error);
+      } finally {
+        this.loading = false;
+      }
+    },
     onDrop(dropResult) {
       this.dayPlaces = applyDrag(this.dayPlaces, dropResult);
       this.updatePlaceOrder();
@@ -228,6 +289,7 @@ export default {
 .journey-container {
   padding: 20px;
 }
+
 /* 頭部區域 */
 .header {
   display: flex;
@@ -246,9 +308,126 @@ export default {
   text-align: left;
   /* 將文本對齊到左側 */
 }
+
+/* 縣市選擇區域 */
+.city-selection {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.city-selection label {
+  font-size: 14px;
+}
+
+.city-selection select {
+  padding: 5px;
+  margin-right: 10px;
+  font-size: 12px;
+}
+
+.city-selection .confirm-button {
+  color: rgb(86, 74, 74);
+  border: none;
+  font-size: 12px;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+/* 智能推薦提醒 */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+.confirmation-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  border-radius: 10px;
+  z-index: 1000;
+  width: 55%;
+  padding: 20px;
+}
+
+.dialog-content {
+  text-align: center;
+}
+
+.dialog-content p {
+  margin-bottom: 20px;
+  font-size: 16px;
+  color: #333;
+}
+
+.dialog-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.dialog-buttons button {
+  background-color: #079500;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+.dialog-buttons button:hover {
+  background-color: #0056b3;
+}
+
+.dialog-buttons button:nth-child(2) {
+  background-color: #6c757d;
+}
+
+.dialog-buttons button:nth-child(2):hover {
+  background-color: #5a6268;
+}
+
+/* 加載指示器覆蓋層 */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 加載指示器 */
+.loading-spinner {
+  border: 6px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* 最佳路線按鈕 */
 .optimize-button {
-  background-color: #04bc1a;
+  background-color: #079500;
   color: white;
   border: none;
   border-radius: 5px;
@@ -281,11 +460,11 @@ export default {
   border: none;
   background: none;
   color: #7e848a;
-  font-size: 16px;
+  font-size: 15px;
   position: relative;
   cursor: pointer;
   white-space: nowrap;
-  line-height: 24px;
+  line-height: 26px;
   /* 確保一致的高度 */
 }
 
@@ -342,6 +521,22 @@ export default {
   gap: 10px;
 }
 
+/* 沒有地點提示容器 */
+.no-places-placeholder {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 16px;
+}
+
+/* 動態提示容器 */
+.dynamic-placeholder {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  font-size: 16px;
+}
+
 /* 地點卡片 */
 .place-card {
   background-color: #f9f9f9;
@@ -356,8 +551,10 @@ export default {
 
 /* 已拜訪地點卡片 */
 .visited-place {
-  background-color: #aff4af; /* 設定已拜訪地點卡片的背景色 */
+  background-color: #aff4af;
+  /* 設定已拜訪地點卡片的背景色 */
 }
+
 /* 上下移動按鈕 */
 .place-buttons {
   display: flex;
