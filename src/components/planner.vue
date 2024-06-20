@@ -3,12 +3,12 @@
     <div class="header">
       <h1>我的行程</h1>
       <button v-if="!showCreateItineraryForm" @click="showCreateItineraryForm = true"
-        class="new-itinerary-button">新建行程</button>
+        class="new-itinerary-button">建立行程</button>
     </div>
     <div class="itineraries-container" v-if="itineraries.length > 0">
       <div v-for="itinerary in itineraries" :key="itinerary.itinerary_id" class="itinerary-card">
         <h2>{{ itinerary.name }}</h2>
-        <p>天數: {{ itinerary.days }}</p>
+        <p>{{ itinerary.days }} 天行程</p>
         <button @click="showConfirmDelete(itinerary.itinerary_id)" class="delete-button">刪除</button>
         <button @click="selectItineraryAction(itinerary)" class="select-button">行程安排</button>
       </div>
@@ -22,9 +22,9 @@
         <h3>新建行程</h3>
         <form @submit.prevent="createItinerary" class="form-container">
           <label for="itinerary-name">行程名稱</label>
-          <input id="itinerary-name" v-model="newItineraryName" required>
+          <input id="itinerary-name" v-model="newItineraryName" required class="itinerary-name-input">
           <label for="itinerary-days">天數</label>
-          <input id="itinerary-days" type="number" v-model.number="newItineraryDays" required min="1">
+          <input id="itinerary-days" type="number" v-model.number="newItineraryDays" required min="1" class="itinerary-days-input">
           <button type="submit" class="new-itinerary-button">建立</button>
         </form>
       </div>
@@ -161,6 +161,8 @@ export default {
 
 <style scoped>
 .planner-container {
+  background-color: #ebf8fc;
+  height: 80vh;
   padding: 20px;
 }
 
@@ -175,6 +177,17 @@ export default {
   max-height: 70vh;
   overflow-y: auto;
   margin-bottom: 20px;
+}
+
+.itineraries-container h2{
+  text-align: left;
+  padding-left: 0; /* 確保內邊距為0，文字緊貼左邊 */
+  margin-left: 0; /* 確保外邊距為0，文字緊貼左邊 */
+}
+.itineraries-container p{
+  text-align: left;
+  padding-left: 0; 
+  margin-left: 0; 
 }
 
 .itinerary-card {
@@ -214,17 +227,19 @@ button {
   background: none;
   color: #dc3545;
   padding: 0;
+  font-weight: bold;  
 }
 
 .select-button {
-  color: #007bff;
+  background-color: #f9f9f9;
+  color: #025ec0;
   padding: 5px 10px;
-  font-size: 12px;
+  font-size: 16px;
   position: absolute;
+  font-weight: bold;       
   right: 10px;
   top: 10px;
 }
-
 .modal {
   display: flex;
   justify-content: center;
@@ -268,13 +283,18 @@ button {
 }
 
 .form-container input {
+  margin-top: 10px;
   margin-bottom: 10px;
-  width: 80%;
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
 }
-
+.itinerary-name-input {
+  width: 80%;
+}
+.itinerary-days-input {
+  width: 10%;
+}
 .confirm-button {
   background-color: #28a745;
   color: white;

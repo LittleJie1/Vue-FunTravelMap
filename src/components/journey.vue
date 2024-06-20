@@ -34,13 +34,14 @@
                 <button v-if="index !== selectedDayPlaces.length - 1" @click="movePlace(index, 'down')">▼</button>
               </div>
               <h3>{{ place.name }}</h3>
+              <button @click="navigateToPlace(place)" class="navigate-button">▶</button>
               <button @click="deletePlace(index)" class="delete-button">✖</button>
             </div>
           </Draggable>
         </Container>
         <div class="dynamic-placeholder">
           調整景點順序<br>
-          請點上下箭頭 或 久按拖曳調整
+          請點▲▼ 或 久按拖曳
         </div>
       </div>
       <div v-else class="no-places-placeholder">
@@ -52,7 +53,7 @@
       <div class="overlay" @click="closeConfirmationDialog"></div>
       <div class="confirmation-dialog">
         <div class="dialog-content">
-          <p>智能推薦會取代當天行程<br>是否確認</p>
+          <p>智能推薦會取代當天行程<br>是否要執行</p>
           <div class="dialog-buttons">
             <button @click="confirmCitySelection">確定</button>
             <button @click="closeConfirmationDialog">取消</button>
@@ -279,6 +280,12 @@ export default {
       } catch (error) {
         console.error('Error updating place order:', error);
       }
+    },
+    navigateToPlace(place) {
+      const lat = place.latitude;
+      const lng = place.longitude;
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+      window.location.href = url;
     }
   }
 };
@@ -300,7 +307,7 @@ export default {
 
 .header h1 {
   flex-grow: 1;
-  font-size: 18px;
+  font-size: 20px;
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -427,11 +434,12 @@ export default {
 
 /* 最佳路線按鈕 */
 .optimize-button {
-  background-color: #079500;
-  color: white;
+  background-color: #508fed;
+  color: rgb(255, 251, 251);
   border: none;
   border-radius: 5px;
   padding: 10px 20px;
+  font-weight: bold; 
   cursor: pointer;
   margin-left: 10px;
 }
@@ -450,6 +458,7 @@ export default {
   overflow-x: auto;
   gap: 5px;
   flex-grow: 1;
+  margin-right: 40px; /* 調整這裡的 margin-right 以增加空間 */
 }
 
 /* 天數按鈕 */
@@ -505,13 +514,12 @@ export default {
   height: 30px;
   background-color: #e0e0e0;
   border: none;
-  border-radius: 50%;
   cursor: pointer;
-  color: #007bff;
+  color: #020202;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 20px;
+  font-size: 16px;
 }
 
 /* 地點容器 */
@@ -573,7 +581,7 @@ export default {
 /* 地點名稱 */
 .place-card h3 {
   flex-grow: 1;
-  font-size: 18px;
+  font-size: 16px;
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -589,8 +597,18 @@ export default {
   color: rgb(170, 4, 4);
   cursor: pointer;
   font-size: 20px;
-  margin-left: auto;
+  padding-right: 0;
   /* 確保刪除按鈕在最右側 */
+}
+
+/* 新增導航按鈕樣式 */
+.navigate-button {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 16px;
+  padding-right: 5px;
 }
 
 /* 返回按鈕 */
@@ -598,6 +616,7 @@ export default {
   background-color: #998e86;
   color: white;
   border: none;
+  font-weight: bold; 
   border-radius: 5px;
   padding: 10px 20px;
   cursor: pointer;

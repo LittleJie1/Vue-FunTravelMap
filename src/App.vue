@@ -30,6 +30,7 @@ export default {
   background-color: #f8f8f8;
   text-align: center;
   padding: 20px 0;
+  z-index: 1;
   box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1);
 }
 

@@ -21,7 +21,7 @@
         <div class="info-details">
           <h3>{{ selectedPlace.name }}</h3>
           <p>★ {{ selectedPlace.rating ? selectedPlace.rating : '無評價' }}</p>
-          <button v-if="selectedItinerary" class="add-button" @click="addToItinerary">+ 加入行程</button>
+          <button v-if="selectedItinerary" class="add-button" @click="addToItinerary">+ 行程</button>
         </div>
       </div>
     </div>
@@ -29,7 +29,7 @@
       歡迎使用趣旅圖!<br>
       請先至
       <span style="font-weight: bold; color: #CE0000;">行程總覽</span>
-      創建行程<br>
+      建立行程<br>
       點選<span style="font-weight: bold; color: #CE0000;">行程安排</span>點擊上方的天數<br>
       返回此頁面搜尋景點並加入行程!
     </div>
@@ -373,7 +373,7 @@ export default {
 .map-container {
   position: relative;
   width: 100%;
-  height: 50vh;
+  height: 45vh;
   margin-top: 10px;
 }
 
@@ -384,9 +384,9 @@ export default {
   transform: translateX(-50%);
   width: 90%;
   max-width: 300px;
-  height: 130px;
+  height: 135px;
   /* 固定高度 */
-  background: #e5f1ff;
+  background: hsl(201, 95%, 92%);
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   padding: 20px;
@@ -451,10 +451,10 @@ export default {
   display: inline-block;
   margin-top: 10px;
   padding: 10px 20px;
-  background-color: #63a5eb;
+  background-color: #e8ae01;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 50px;
   cursor: pointer;
   font-size: 14px;
   text-align: center;
@@ -485,18 +485,18 @@ export default {
 .buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 12px;
   justify-content: center;
   margin-top: 10px;
 }
 
 .buttons button {
   padding: 5px 10px;
-  font-size: 12px;
-  background-color: #63a5eb;
-  color: white;
+  font-size: 15px;
+  background-color: #fae1b6;
+  color: rgb(85, 85, 85);
   border: none;
-  border-radius: 5px;
+  border-radius: 10px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
