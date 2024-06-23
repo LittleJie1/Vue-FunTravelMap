@@ -163,16 +163,16 @@ export default {
       const svgHeight = 80; // 增加高度以容納點和文字
 
       const iconSvg = `
-<svg xmlns='http://www.w3.org/2000/svg' width='${svgWidth}' height='${svgHeight}'>
-  <rect x='0' y='0' width='${svgWidth}' height='35' rx='8' ry='8' fill='#e3f2fd' stroke='#007bff' stroke-width='1'/>
-  <text x='${svgWidth / 2}' y='15' font-size='12' fill='#007bff' font-family='Arial, Helvetica, sans-serif' font-weight='bold' text-anchor='middle' alignment-baseline='middle'>
-    ${text}
-  </text>
-  <text x='${svgWidth / 2}' y='30' font-size='12' fill='#007bff' font-family='Arial, Helvetica, sans-serif' font-weight='bold' text-anchor='middle' alignment-baseline='middle'>
-    ${rating}
-  </text>
-  <image x='${svgWidth / 2 - 12.5}' y='40' width='25' height='25' href='${this.base64Icon}' />
-</svg>`;
+              <svg xmlns='http://www.w3.org/2000/svg' width='${svgWidth}' height='${svgHeight}'>
+              <rect x='0' y='0' width='${svgWidth}' height='35' rx='8' ry='8' fill='#5599FF' stroke='#007bff' stroke-width='1'/>
+              <text x='${svgWidth / 2}' y='15' font-size='12' fill='#3C3C3C' font-family='Arial, Helvetica, sans-serif' font-weight='bold' text-anchor='middle'>
+                ${place.name}
+              </text>
+              <text x='${svgWidth / 2}' y='30' font-size='12' fill='#FFD700' font-family='Arial, Helvetica, sans-serif'  text-anchor='middle'>
+                ★ ${rating}
+              </text>
+              <image x='${svgWidth / 2 - 12.5}' y='40' width='25' height='25' href='${this.base64Icon}' />
+              </svg>`;
 
       const encodedIconSvg = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(iconSvg)}`;
 
@@ -229,11 +229,11 @@ export default {
             // 使用SVG來生成自定義標記
             const iconSvg = `
             <svg xmlns='http://www.w3.org/2000/svg' width='${svgWidth}' height='${svgHeight}'>
-              <rect x='0' y='0' width='${svgWidth}' height='35' rx='8' ry='8' fill='#e3f2fd' stroke='#007bff' stroke-width='1'/>
-              <text x='${svgWidth / 2}' y='15' font-size='12' fill='#007bff' font-family='Arial, Helvetica, sans-serif' font-weight='bold' text-anchor='middle'>
+              <rect x='0' y='0' width='${svgWidth}' height='35' rx='8' ry='8' fill='#5599FF' stroke='#007bff' stroke-width='1'/>
+              <text x='${svgWidth / 2}' y='15' font-size='12' fill='#3C3C3C' font-family='Arial, Helvetica, sans-serif' font-weight='bold' text-anchor='middle'>
                 ${place.name}
               </text>
-              <text x='${svgWidth / 2}' y='30' font-size='12' fill='#007bff' font-family='Arial, Helvetica, sans-serif' font-weight='bold' text-anchor='middle'>
+              <text x='${svgWidth / 2}' y='30' font-size='12' fill='#FFD700' font-family='Arial, Helvetica, sans-serif'  text-anchor='middle'>
                 ★ ${rating}
               </text>
               <image x='${svgWidth / 2 - 12.5}' y='40' width='25' height='25' href='${this.base64Icon}' />
