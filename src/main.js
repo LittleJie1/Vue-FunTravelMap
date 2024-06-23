@@ -4,7 +4,7 @@ import liff from '@line/liff';
 import router from './router';
 import store from './store';
 
-const liffId = '2005515760-nQPja0gB'; // 統一的 LIFF ID
+const liffId = '2005485902-yVd49AD9'; // 統一的 LIFF ID
 
 // LIFF 初始化函數
 async function initializeLiff() {
