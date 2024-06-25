@@ -28,9 +28,9 @@
     <div v-else class="info-placeholder">
       歡迎使用趣旅圖!<br>
       請先至
-      <span style="font-weight: bold; color: #CE0000;">行程總覽</span>
+      <span style="font-weight: bold; color: #AE0000;">行程總覽</span>
       建立行程<br>
-      點選<span style="font-weight: bold; color: #CE0000;">行程安排</span>點擊上方的天數<br>
+      點選<span style="font-weight: bold; color: #025ec0;">行程安排</span>點擊上方的天數<br>
       返回此頁面搜尋景點並加入行程!
     </div>
     <div v-if="showToast" class="toast">加入成功！</div>

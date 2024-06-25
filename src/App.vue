@@ -1,10 +1,9 @@
 <template>
   <div id="app">
     <div class="navbar">
-      <router-link to="/">找景點</router-link>
-      <!-- <router-link to="/journey">行程調整</router-link> -->
-      <router-link to="/planner">行程總覽</router-link>
-      <router-link to="/checkin">旅圖打卡</router-link>
+      <router-link to="/" style="font-weight: bold; color: #00A600;">找景點</router-link>
+      <router-link to="/planner" style="font-weight: bold;color: #AE0000;">行程總覽</router-link>
+      <router-link to="/checkin">Flag打卡</router-link>
     </div>
     <router-view></router-view>
   </div>

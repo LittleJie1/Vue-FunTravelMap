@@ -7,7 +7,7 @@
         <button @click="goBack" class="back-button">返回</button>
       </div>
       <div class="city-selection">
-        <label for="city-select">智能推薦行程：</label>
+        <label for="city-select">熱門一鍵行程：</label>
         <select id="city-select" v-model="selectedCity">
           <option v-for="city in cities" :key="city" :value="city">{{ city }}</option>
         </select>
@@ -46,7 +46,7 @@
       </div>
       <div v-else class="no-places-placeholder">
         點擊上方欲安排的天數<br>返回
-        <span style="font-weight: bold; color: #CE0000;">找景點</span>安排行程<br><br><br>
+        <span style="font-weight: bold; color: #00A600;">找景點</span>安排行程<br><br><br>
       </div>
     </div>
     <div v-if="showConfirmationDialog">
