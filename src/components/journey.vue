@@ -7,7 +7,7 @@
         <button @click="goBack" class="back-button">返回</button>
       </div>
       <div class="city-selection">
-        <label for="city-select">熱門一鍵行程：</label>
+        <label for="city-select">趣旅i推薦：</label>
         <select id="city-select" v-model="selectedCity">
           <option v-for="city in cities" :key="city" :value="city">{{ city }}</option>
         </select>
@@ -53,7 +53,7 @@
       <div class="overlay" @click="closeConfirmationDialog"></div>
       <div class="confirmation-dialog">
         <div class="dialog-content">
-          <p>智能推薦會取代當天行程<br>是否要執行</p>
+          <p>i推薦需要些時間且會取代所有已排行程<br>請再次確認</p>
           <div class="dialog-buttons">
             <button @click="confirmCitySelection">確定</button>
             <button @click="closeConfirmationDialog">取消</button>
