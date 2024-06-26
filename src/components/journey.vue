@@ -53,7 +53,7 @@
       <div class="overlay" @click="closeConfirmationDialog"></div>
       <div class="confirmation-dialog">
         <div class="dialog-content">
-          <p>i推薦需要些時間且會取代所有已排行程<br>請再次確認</p>
+          <p>i推薦處理需要些時間<br>且會取代所有已排行程<br>請再次確認</p>
           <div class="dialog-buttons">
             <button @click="confirmCitySelection">確定</button>
             <button @click="closeConfirmationDialog">取消</button>
