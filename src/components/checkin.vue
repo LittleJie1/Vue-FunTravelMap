@@ -29,6 +29,7 @@
         <h3>選擇打卡景點</h3>
         <h4>如不選擇，依現在位置打卡</h4>
         <select v-model="selectedPlace">
+          <option value="">依現在位置打卡</option>
           <option v-for="place in nearbyPlaces" :key="place.place_id" :value="place">
             {{ place.name }}
           </option>
@@ -68,7 +69,7 @@ export default {
       selectedItinerary: '',
       showPlacesModal: false,
       nearbyPlaces: [],
-      selectedPlace: null,
+      selectedPlace: '',
       currentCheckinData: null,
       toastMessage: '',
       showToastFlag: false
@@ -364,6 +365,7 @@ export default {
       })
       .then(response => {
         if (response.data.length > 0) {
+          this.selectedPlace = "";
           this.nearbyPlaces = response.data;
           this.showPlacesModal = true;
         } else {
